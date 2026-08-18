@@ -31,6 +31,10 @@ export function CancelBookingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
+      {/* Keeps the default /85 scrim rather than clearing it. The manage
+          dialog underneath is still mounted and still painting its own, so the
+          two compound to roughly 98% — deliberately: this is the destructive
+          step, and everything behind it should recede. */}
       <DialogContent className="max-w-md" aria-describedby="cancel-desc">
         <DialogHeader>
           <span className="mb-1 flex items-center text-contour-error" aria-hidden>

@@ -7,7 +7,6 @@ import { useState, useTransition, type ReactNode } from "react";
 import { Field } from "@/components/auth/field";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { signInErrorMessage } from "@/components/auth/auth-errors";
-import { createClient } from "@/lib/supabase/client";
 
 export function ContourLoginForm({ notice }: { notice?: ReactNode }) {
   const router = useRouter();
@@ -25,22 +24,39 @@ export function ContourLoginForm({ notice }: { notice?: ReactNode }) {
 
     startTransition(async () => {
       try {
-        // The browser client writes the session cookies that the proxy in
-        // lib/supabase/proxy.ts reads on the next request.
-        const supabase = createClient();
-
-        // IMPORTANT: This should call my login API and not expose the supabase fetch
-        const { error } = await supabase.auth.signInWithPassword({
-          email: String(data.get("email") ?? ""),
-          password: String(data.get("password") ?? ""),
+        // Sign-in goes through our own route, not the Supabase browser client:
+        // the credentials never touch third-party client code, and the response
+        // carries the session cookies that lib/supabase/proxy.ts reads on the
+        // next request.
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: String(data.get("email") ?? ""),
+            password: String(data.get("password") ?? ""),
+          }),
         });
 
-        if (error) {
-          setFormError(signInErrorMessage(error.code, error.message));
+        const result = (await response.json()) as {
+          redirectTo?: string;
+          error?: string;
+          code?: string;
+        };
+
+        if (!response.ok) {
+          setFormError(
+            signInErrorMessage(
+              result.code,
+              result.error ?? "That didn’t work. Try again.",
+            ),
+          );
           return;
         }
 
-        router.push("/");
+        // The route decides where an account belongs — admins to /admin,
+        // everyone else to /. Falling back to "/" keeps a malformed response
+        // from stranding someone who is now signed in.
+        router.push(result.redirectTo ?? "/");
         // Re-run Server Components so the new session is visible immediately.
         router.refresh();
       } catch {
@@ -98,11 +114,6 @@ export function ContourLoginForm({ notice }: { notice?: ReactNode }) {
           placeholder="••••••••"
           required
           disabled={pending}
-          aside={
-            <Link className="field__aside" href="/auth/forgot-password">
-              Forgot password?
-            </Link>
-          }
         />
 
         <SubmitButton pending={pending}>

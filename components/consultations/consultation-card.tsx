@@ -4,6 +4,7 @@ import {
   ClockIcon,
   ReasonIcon,
 } from "@/components/consultations/icons";
+import { ConsultationStatusBadge } from "@/components/consultations/status-badge";
 import {
   dateOf,
   formatDateShort,
@@ -19,7 +20,7 @@ export function ConsultationCard({
   consultation: Consultation;
   onManage: (id: number) => void;
 }) {
-  const { user_profiles, booking_date_time, duration_mins, reason } =
+  const { user_profiles, booking_date_time, duration_mins, reason, completed_at } =
     consultation;
   // One timestamptz on the row, shown as a date line and a time line.
   const date = dateOf(booking_date_time);
@@ -27,10 +28,16 @@ export function ConsultationCard({
 
   return (
     <article className="flex w-full min-w-0 flex-col rounded-md border border-contour-rule bg-contour-paper-hi p-5">
-      <header className="flex min-w-0 flex-col gap-1">
-        <h3 className="font-display text-lg font-bold leading-tight tracking-tight [overflow-wrap:anywhere]">
+      {/* Name and status on one line, the badge held to its intrinsic width so
+          a long name wraps rather than squeezing the tag. */}
+      <header className="flex min-w-0 items-start justify-between gap-3">
+        <h3 className="min-w-0 font-display text-lg font-bold leading-tight tracking-tight [overflow-wrap:anywhere]">
           {user_profiles.first_name} {user_profiles.last_name}
         </h3>
+        <ConsultationStatusBadge
+          completedAt={completed_at}
+          className="mt-0.5 flex-none"
+        />
       </header>
 
       <dl className="mt-4 flex flex-col gap-2 text-sm">

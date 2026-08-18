@@ -19,30 +19,16 @@ export function AuthShell({ statement, proof, children }: AuthShellProps) {
   return (
     <div className="auth">
       <div className="auth__main">
-        <header className="auth__nav reveal" style={{ "--i": 0 } as React.CSSProperties}>
-          <Link href="/" className="mark">
-            <ContourGlyph className="mark__glyph" />
-            Contour
-          </Link>
-          <a
-            className="auth__back"
-            href="https://www.contoureducation.com.au/"
-          >
-            <BackArrowIcon />
-            Back to site
-          </a>
+        <header
+          className="auth__nav reveal"
+          style={{ "--i": 0 } as React.CSSProperties}
+        >
+          <img src="/contour-logo.svg" alt="Contour" className="h-[2rem]" />
         </header>
 
         <main className="auth__body">
           <div className="auth__inner">{children}</div>
         </main>
-
-        <footer className="auth__foot reveal" style={{ "--i": 4 } as React.CSSProperties}>
-          <span>© Contour Education</span>
-          <a href="https://www.contoureducation.com.au/privacy-policy">Privacy</a>
-          <a href="https://www.contoureducation.com.au/terms-of-service">Terms</a>
-          <a href="https://www.contoureducation.com.au/contact">Contact</a>
-        </footer>
       </div>
 
       <aside className="panel">

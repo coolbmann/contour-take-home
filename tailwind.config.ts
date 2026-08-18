@@ -1,5 +1,30 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * A token that still works with an opacity modifier.
+ *
+ * Tailwind can only alpha-composite a colour it can parse, or one written with
+ * the `<alpha-value>` placeholder. A bare `var(--x)` is neither, so `bg-x/70`
+ * matched no colour and Tailwind emitted **nothing at all** — no error, no
+ * rule, just a class that does nothing. That is how the dialog overlay spent
+ * its life invisible.
+ *
+ * Returning a function lets each utility decide: the plain token when there is
+ * no modifier, and a `color-mix()` against transparent when there is. The
+ * tokens are already `oklch()`, so `color-mix` needs nothing newer than they
+ * do.
+ */
+const token = (name: string) =>
+  (({ opacityValue }: { opacityValue?: string }) =>
+    opacityValue === undefined
+      ? `var(${name})`
+      : `color-mix(in oklab, var(${name}) calc(${opacityValue} * 100%), transparent)`) as
+    // Tailwind resolves colour values that are functions — its own
+    // PluginUtils.rgb() and .hsl() return this exact shape — but `colors` is
+    // typed as RecursiveKeyValuePair<string, string>, so the types do not
+    // model it. The cast is confined here rather than at all nineteen tokens.
+    unknown as string;
+
 export default {
   future: {
     // hover: styles only apply where hover is actually supported, so touch
@@ -60,25 +85,25 @@ export default {
         // Every value resolves to a named token in tokens.css, so Tailwind
         // utilities stay inside the token discipline (no arbitrary colours).
         contour: {
-          paper: "var(--color-paper)",
-          "paper-2": "var(--color-paper-2)",
-          "paper-3": "var(--color-paper-3)",
-          "paper-hi": "var(--color-paper-hi)",
-          ink: "var(--color-ink)",
-          neutral: "var(--color-neutral)",
-          muted: "var(--color-muted)",
-          rule: "var(--color-rule)",
-          accent: "var(--color-accent)",
-          "accent-hover": "var(--color-accent-hover)",
-          "accent-press": "var(--color-accent-press)",
-          "accent-ink": "var(--color-accent-ink)",
-          "blue-deep": "var(--color-blue-deep)",
-          "blue-mid": "var(--color-blue-mid)",
-          "blue-grey": "var(--color-blue-grey)",
-          "blue-light": "var(--color-blue-light)",
-          focus: "var(--color-focus)",
-          error: "var(--color-error)",
-          success: "var(--color-success)",
+          paper: token("--color-paper"),
+          "paper-2": token("--color-paper-2"),
+          "paper-3": token("--color-paper-3"),
+          "paper-hi": token("--color-paper-hi"),
+          ink: token("--color-ink"),
+          neutral: token("--color-neutral"),
+          muted: token("--color-muted"),
+          rule: token("--color-rule"),
+          accent: token("--color-accent"),
+          "accent-hover": token("--color-accent-hover"),
+          "accent-press": token("--color-accent-press"),
+          "accent-ink": token("--color-accent-ink"),
+          "blue-deep": token("--color-blue-deep"),
+          "blue-mid": token("--color-blue-mid"),
+          "blue-grey": token("--color-blue-grey"),
+          "blue-light": token("--color-blue-light"),
+          focus: token("--color-focus"),
+          error: token("--color-error"),
+          success: token("--color-success"),
         },
       },
       fontFamily: {

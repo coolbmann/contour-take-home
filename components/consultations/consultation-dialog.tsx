@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CancelBookingDialog } from "@/components/consultations/cancel-booking-dialog";
 import { SlotPicker } from "@/components/consultations/slot-picker";
+import { ConsultationStatusBadge } from "@/components/consultations/status-badge";
 import {
   dateOf,
   formatBooking,
@@ -24,7 +25,7 @@ import {
   timeOf,
   toBookingDateTime,
 } from "@/lib/consultations/format";
-import { DEFAULT_DURATION_MINS } from "@/lib/consultations/mock";
+import { DEFAULT_DURATION_MINS } from "@/lib/consultations/slots";
 import type {
   Consultation,
   ConsultationChanges,
@@ -46,6 +47,7 @@ export function ConsultationDialog({
   onSave,
   onCreate,
   onCancelBooking,
+  onComplete,
 }: {
   mode: "create" | "edit";
   consultation: Consultation | null;
@@ -58,6 +60,7 @@ export function ConsultationDialog({
   onSave: (id: number, changes: ConsultationChanges) => void;
   onCreate: (draft: ConsultationDraft) => void;
   onCancelBooking: (id: number) => void;
+  onComplete: (id: number) => void;
 }) {
   const creating = mode === "create";
 
@@ -83,6 +86,12 @@ export function ConsultationDialog({
   }, [open, creating, consultation]);
 
   if (!creating && !consultation) return null;
+
+  /* A completed consultation is a record of something that happened, so the
+   * dialog becomes a read-only view of it: nothing to edit, reschedule or
+   * cancel. Note this is presentation only — PATCH and DELETE still accept a
+   * completed booking, so it is a closed door, not a locked one. */
+  const completed = !creating && consultation!.completed_at !== null;
 
   // `booking_date_time` is one timestamptz; the picker works in a date + slot.
   const bookedDate = consultation ? dateOf(consultation.booking_date_time) : "";
@@ -128,13 +137,36 @@ export function ConsultationDialog({
     onOpenChange(false);
   }
 
+  function handleComplete() {
+    // One-way, so there is nothing to toggle back — the button is gone below
+    // once the booking is complete.
+    onComplete(consultation!.id);
+    onOpenChange(false);
+  }
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent aria-describedby="consultation-desc">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="flex items-center justify-between">
               {creating ? "Book consultation" : "Manage consultation"}
+              {/* Same variant and size as the Sign out button, so the two
+                  secondary actions in the app read as one control; `text-sm`
+                  is the only override, keeping it from crowding the title.
+                  Absent rather than disabled once complete — completion is
+                  one-way, so a disabled button would offer something that will
+                  never re-enable. */}
+              {!creating && !consultation!.completed_at && (
+                <Button
+                  variant="contourOutline"
+                  size="control"
+                  className="shrink-0 whitespace-nowrap text-sm"
+                  onClick={handleComplete}
+                >
+                  Mark as Completed
+                </Button>
+              )}
             </DialogTitle>
             <DialogDescription id="consultation-desc">
               {creating
@@ -156,6 +188,13 @@ export function ConsultationDialog({
                   <dt className="text-contour-muted">Duration</dt>
                   <dd className="mt-0.5 font-medium tabular-nums">
                     {DEFAULT_DURATION_MINS} min
+                  </dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-contour-muted">Status</dt>
+                  {/* A booking that does not exist yet cannot be complete. */}
+                  <dd className="mt-0.5">
+                    <ConsultationStatusBadge completedAt={null} />
                   </dd>
                 </div>
               </dl>
@@ -180,6 +219,14 @@ export function ConsultationDialog({
                     {formatDateLong(bookedDate)}, {formatTime(bookedTime)}
                   </dd>
                 </div>
+                <div className="min-w-0">
+                  <dt className="text-contour-muted">Status</dt>
+                  <dd className="mt-0.5">
+                    <ConsultationStatusBadge
+                      completedAt={consultation!.completed_at}
+                    />
+                  </dd>
+                </div>
               </dl>
             )}
           </div>
@@ -200,6 +247,7 @@ export function ConsultationDialog({
               }
               onChange={(e) => setReason(e.target.value)}
               onBlur={() => setTouched((t) => ({ ...t, reason: true }))}
+              disabled={completed}
               aria-invalid={showReasonError || undefined}
               aria-describedby="reason-helper"
             />
@@ -207,9 +255,11 @@ export function ConsultationDialog({
               id="reason-helper"
               className={`min-h-[1lh] text-sm ${showReasonError ? "text-contour-error" : "text-contour-muted"}`}
             >
-              {showReasonError
-                ? "Add a reason so the tutor knows what to prepare."
-                : "What the student wants to cover."}
+              {completed
+                ? "This consultation is complete — its details can no longer be changed."
+                : showReasonError
+                  ? "Add a reason so the tutor knows what to prepare."
+                  : "What the student wants to cover."}
             </p>
           </div>
 
@@ -222,14 +272,16 @@ export function ConsultationDialog({
                     {formatBooking(consultation!.booking_date_time)}
                   </span>
                 </p>
-                <Button
-                  variant="contourOutline"
-                  size="control"
-                  className="whitespace-nowrap"
-                  onClick={() => setRescheduling(true)}
-                >
-                  Change
-                </Button>
+                {!completed && (
+                  <Button
+                    variant="contourOutline"
+                    size="control"
+                    className="whitespace-nowrap"
+                    onClick={() => setRescheduling(true)}
+                  >
+                    Change
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="flex flex-col gap-4">
@@ -279,34 +331,50 @@ export function ConsultationDialog({
           </div>
 
           <DialogFooter className="mt-6">
-            {creating ? (
+            {/* Completed: hiding both actions would leave a dialog with no
+                visible way out — DialogContent renders no close affordance — so
+                Close takes their place rather than nothing at all. */}
+            {completed ? (
               <Button
                 variant="contourOutline"
                 size="control"
-                className="whitespace-nowrap"
+                className="whitespace-nowrap xs:ml-auto"
                 onClick={() => onOpenChange(false)}
               >
-                Discard
+                Close
               </Button>
             ) : (
-              <Button
-                variant="contourOutline"
-                size="control"
-                className="whitespace-nowrap border-contour-error text-contour-error hover:bg-contour-paper-2"
-                onClick={() => setConfirmingCancel(true)}
-              >
-                Cancel booking
-              </Button>
+              <>
+                {creating ? (
+                  <Button
+                    variant="contourOutline"
+                    size="control"
+                    className="whitespace-nowrap"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Discard
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contourOutline"
+                    size="control"
+                    className="whitespace-nowrap border-contour-error text-contour-error hover:bg-contour-paper-2"
+                    onClick={() => setConfirmingCancel(true)}
+                  >
+                    Cancel booking
+                  </Button>
+                )}
+                <Button
+                  variant="contour"
+                  size="control"
+                  className="whitespace-nowrap"
+                  onClick={handleSubmit}
+                  disabled={creating ? !createReady : !editReady}
+                >
+                  {creating ? "Book consultation" : "Save changes"}
+                </Button>
+              </>
             )}
-            <Button
-              variant="contour"
-              size="control"
-              className="whitespace-nowrap"
-              onClick={handleSubmit}
-              disabled={creating ? !createReady : !editReady}
-            >
-              {creating ? "Book consultation" : "Save changes"}
-            </Button>
           </DialogFooter>
 
           {(awaitingSlot || (creating && date && !time)) && (

@@ -42,21 +42,21 @@ export function formatWhen(iso: string, hhmm: string): string {
   return `${formatDateShort(iso)} · ${formatTime(hhmm)}`;
 }
 
-/** "Today" / "Tomorrow" / "Thu 20 Aug" */
-export function formatRelativeDay(iso: string, today: string, tomorrow: string): string {
-  if (iso === today) return "Today";
-  if (iso === tomorrow) return "Tomorrow";
-  return formatDateShort(iso);
+/* Bridging the picker, which speaks Date, and everything else here, which
+ * speaks `YYYY-MM-DD`. Both go through local time on purpose: the calendar
+ * shows the user's own days, and a UTC round trip moves a late-evening
+ * booking onto the wrong one. */
+
+/** Local `YYYY-MM-DD` for a Date. */
+export function isoFromDate(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
 }
 
-/** "20" — day of month, for the date strip. */
-export function isoDayNum(iso: string): string {
-  return String(toDate(iso).getDate());
-}
-
-/** "Aug" — short month, for the date strip. */
-export function isoMonthShort(iso: string): string {
-  return toDate(iso).toLocaleDateString(LOCALE, { month: "short" });
+/** A local midnight Date for a `YYYY-MM-DD` string. */
+export function dateFromIso(iso: string): Date {
+  return toDate(iso);
 }
 
 /* ---------------------------------------------------------------------------

@@ -6,7 +6,7 @@ import { ConsultationsSection } from "@/components/consultations/consultations-s
 import { LogoutButton } from "@/components/logout-button";
 import { requirePageAccess } from "@/lib/auth";
 import type { Consultation } from "@/lib/consultations/types";
-import { getConsultations } from "@/services/consultation-service";
+import { getAllConsultations } from "@/services/consultation-service";
 
 export const metadata: Metadata = {
   title: "Home · Contour Education",
@@ -37,9 +37,25 @@ export default async function Home() {
   // Request-time: opt out of prerendering rather than streaming a dynamic hole.
   await connection();
 
-  // Signed out -> /auth/login. Signed in without the grant -> not-found.
-  // Returns the client, so this page cannot query without having passed here.
-  const { supabase, access } = await requirePageAccess(["consultation.read"]);
+  /* Signed out -> /auth/login. Signed in without the role or the grant ->
+   * not-found. Returns the client, so this page cannot query without having
+   * passed here.
+   *
+   * Role AND permission, because satisfies() ANDs the two categories and this
+   * page needs both to be true: only an admin belongs here, and the panel it
+   * renders reads consultations. The login route's "/admin" answer is a
+   * redirect hint, not a gate — this is the gate.
+   *
+   * Note: public.role_permissions currently grants the Admin role nothing, so
+   * until consultation.read is granted to role 2 this denies everyone. That is
+   * the intended failure direction: a locked door beats a page that opens and
+   * then cannot load what it exists to show. */
+  const { supabase, access } = await requirePageAccess({
+    roles: ["Admin"],
+    permissions: ["consultation.readAll"],
+  });
+
+  console.log(access);
 
   const { data: profile, error } = await supabase
     .from("user_profiles")
@@ -55,7 +71,7 @@ export default async function Home() {
   // catch here would swallow it. A genuine query failure should surface.
   let consultations: Consultation[] = [];
   try {
-    consultations = await getConsultations(supabase, access.userId);
+    consultations = await getAllConsultations(supabase);
   } catch (error) {
     console.error(error);
     return <div>Error loading consultations</div>;
@@ -90,9 +106,9 @@ export default async function Home() {
         <ConsultationsSection
           initial={consultations}
           currentUserId={access.userId}
+          isAdmin={access.roles.includes("Admin")}
           currentUserFirstName={profile?.first_name ?? ""}
           currentUserLastName={profile?.last_name ?? ""}
-          isAdmin={access.roles.includes("Admin")}
         />
       </div>
     </main>

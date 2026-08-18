@@ -3,6 +3,17 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+/**
+ * public.roles id 1 — "Student". Every account starts here.
+ *
+ * Assigned from the backend rather than a trigger on auth.users, so the rule
+ * lives with the rest of the sign-up flow and is visible in this file. The
+ * tradeoff to know about: a user created any other way — the Supabase
+ * dashboard, a future admin invite, a seed script — gets no role, because
+ * nothing below runs for them.
+ */
+const STUDENT_ROLE_ID = 1;
+
 const schema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
@@ -44,6 +55,28 @@ export async function POST(request: Request) {
         { onConflict: "id" },
       );
     if (insertError) profileError = insertError.message;
+
+    // Without a role the account has no permissions at all: sign-in succeeds
+    // and then every guarded page 404s.
+    //
+    // Inserted plainly. public.user_roles is keyed on (user_id, role_id), so a
+    // repeat sign-up against an already-registered email cannot duplicate the
+    // row — it fails the primary key instead, which is logged below and
+    // otherwise ignored. That is the right outcome: the grant it was trying to
+    // add is already there.
+    const { error: roleInsertError } = await supabase
+      .from("user_roles")
+      .insert({ user_id: data.user.id, role_id: STUDENT_ROLE_ID });
+
+    // Not surfaced and not fatal: the auth user exists and cannot be rolled
+    // back without the service-role key. Logged so a failure leaves a trace
+    // for whoever has to work out why an account has no permissions.
+    if (roleInsertError) {
+      console.error(
+        `create-account: could not assign role ${STUDENT_ROLE_ID} to ${data.user.id}:`,
+        roleInsertError.message,
+      );
+    }
   }
 
   // The auth user already exists at this point and cannot be rolled back

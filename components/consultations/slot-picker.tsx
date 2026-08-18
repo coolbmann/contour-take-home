@@ -2,12 +2,18 @@
 
 import { useMemo } from "react";
 
-import { getSlotsForDate, upcomingDates } from "@/lib/consultations/mock";
-import { formatRelativeDay, formatTime, isoDayNum, isoMonthShort } from "@/lib/consultations/format";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  dateFromIso,
+  formatTime,
+  isoFromDate,
+} from "@/lib/consultations/format";
+import { SLOT_TIMES } from "@/lib/consultations/slots";
 
-/* Reschedule is a two-step choice: pick a day, then pick a slot on that day.
- * Slots are only requested once a date exists, which mirrors the eventual
- * `GET /slots?date=…` call. */
+/* Booking is a two-step choice: pick a day on the calendar, then pick a start
+ * time on that day. Times are the same every day (see SLOT_TIMES), so the
+ * second step needs nothing from the first beyond "a date exists" — but it
+ * stays gated on one anyway, because a time without a date is not a booking. */
 
 export function SlotPicker({
   selectedDate,
@@ -24,77 +30,53 @@ export function SlotPicker({
   originalDate: string;
   originalTime: string;
 }) {
-  const dates = useMemo(() => upcomingDates(14), []);
-  const today = dates[0];
-  const tomorrow = dates[1];
+  // Local midnight, so "before today" compares days rather than instants and
+  // this morning does not disqualify the whole of today.
+  const today = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }, []);
 
-  const slots = useMemo(
-    () => (selectedDate ? getSlotsForDate(selectedDate) : []),
-    [selectedDate],
-  );
-  const openSlots = slots.filter((s) => s.available);
+  const selected = selectedDate ? dateFromIso(selectedDate) : undefined;
 
   return (
     <div className="flex flex-col gap-4">
       <fieldset className="min-w-0">
         <legend className="mb-2 text-sm font-medium">Pick a date</legend>
-        {/* Horizontal scroll is contained here so the dialog never scrolls sideways. */}
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2">
-          {dates.map((date) => {
-            const active = date === selectedDate;
-            return (
-              <button
-                key={date}
-                type="button"
-                aria-pressed={active}
-                onClick={() => onSelectDate(date)}
-                className={[
-                  "flex min-h-hit min-w-[4.25rem] flex-none flex-col items-center justify-center gap-0.5 rounded-sm border px-3 py-2",
-                  "outline-2 outline-offset-2 outline-transparent [outline-style:solid] transition-colors duration-short ease-contour-out",
-                  "focus-visible:outline-contour-focus",
-                  active
-                    ? "border-contour-ink bg-contour-ink text-contour-paper"
-                    : "border-contour-rule bg-contour-paper text-contour-ink hover:bg-contour-paper-2",
-                ].join(" ")}
-              >
-                <span className="text-xs opacity-80">
-                  {formatRelativeDay(date, today, tomorrow)}
-                </span>
-                <span className="text-base font-medium tabular-nums leading-none">
-                  {isoDayNum(date)}
-                </span>
-                <span className="text-xs opacity-80">{isoMonthShort(date)}</span>
-              </button>
-            );
-          })}
+        <div className="flex w-fit justify-center rounded-sm border border-contour-rule bg-contour-paper p-3 xs:justify-start">
+          <Calendar
+            mode="single"
+            selected={selected}
+            onSelect={(date) => date && onSelectDate(isoFromDate(date))}
+            defaultMonth={selected ?? today}
+            // Nobody books a consultation in the past.
+            disabled={{ before: today }}
+            startMonth={today}
+          />
         </div>
       </fieldset>
 
       <fieldset className="min-w-0">
         <legend className="mb-2 text-sm font-medium">
-          {selectedDate ? "Available slots" : "Pick a date to see available slots"}
+          {selectedDate ? "Pick a time" : "Pick a date to see times"}
         </legend>
 
         {!selectedDate ? (
           <p className="text-sm text-contour-muted">
-            Choose a day above and the open times will appear here.
-          </p>
-        ) : openSlots.length === 0 ? (
-          <p className="rounded-sm border border-contour-rule bg-contour-paper-2 px-4 py-3 text-sm text-contour-muted">
-            No slots open on this date. Try another day.
+            Choose a day above and the available times will appear here.
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-2 xs:grid-cols-3">
-            {openSlots.map((slot) => {
-              const active = slot.time === selectedTime;
+            {SLOT_TIMES.map((time) => {
+              const active = time === selectedTime;
               const isOriginal =
-                selectedDate === originalDate && slot.time === originalTime;
+                selectedDate === originalDate && time === originalTime;
               return (
                 <button
-                  key={slot.time}
+                  key={time}
                   type="button"
                   aria-pressed={active}
-                  onClick={() => onSelectTime(slot.time)}
+                  onClick={() => onSelectTime(time)}
                   className={[
                     "flex min-h-hit items-center justify-center gap-1 rounded-pill border px-3 text-sm tabular-nums",
                     "whitespace-nowrap outline-2 outline-offset-2 outline-transparent [outline-style:solid]",
@@ -104,9 +86,11 @@ export function SlotPicker({
                       : "border-contour-rule bg-contour-paper text-contour-ink hover:bg-contour-paper-2",
                   ].join(" ")}
                 >
-                  {formatTime(slot.time)}
+                  {formatTime(time)}
                   {isOriginal && !active && (
-                    <span className="text-xs text-contour-muted">(current)</span>
+                    <span className="text-xs text-contour-muted">
+                      (current)
+                    </span>
                   )}
                 </button>
               );

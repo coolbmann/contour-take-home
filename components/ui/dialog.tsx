@@ -30,10 +30,20 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
  * inside itself instead of overflowing the viewport. */
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+    /**
+     * Classes for this dialog's scrim.
+     *
+     * Overlays are per-dialog and each one paints, so a dialog opened on top of
+     * another stacks two scrims and their opacities compound. Pass
+     * `bg-transparent` on the upper dialog when the one beneath it is already
+     * dimming the page.
+     */
+    overlayClassName?: string;
+  }
+>(({ className, overlayClassName, children, ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay />
+    <DialogOverlay className={overlayClassName} />
     <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto p-4">
       <DialogPrimitive.Content
         ref={ref}
@@ -66,7 +76,7 @@ function DialogFooter({
   return (
     <div
       className={cn(
-        "flex flex-col-reverse gap-3 xs:flex-row xs:justify-end",
+        "flex flex-col-reverse gap-3 xs:flex-row xs:justify-between",
         className,
       )}
       {...props}
