@@ -1,11 +1,37 @@
-import { LoginForm } from "@/components/login-form";
+import type { Metadata } from "next";
+import { Suspense } from "react";
 
-export default function Page() {
+import { AuthShell } from "@/components/auth/auth-shell";
+import { CreatedNotice } from "@/components/auth/created-notice";
+import { ContourLoginForm } from "@/components/auth/login-form";
+
+export const metadata: Metadata = {
+  title: "Sign in · Contour Education",
+  description: "Sign in to your Contour Education account.",
+};
+
+export default function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ created?: string }>;
+}) {
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <LoginForm />
-      </div>
-    </div>
+    <AuthShell
+      statement="One login. Every class, every resource."
+      proof={
+        <>
+          The academic partner helping <b>15,000+</b> students reach their full
+          potential.
+        </>
+      }
+    >
+      <ContourLoginForm
+        notice={
+          <Suspense fallback={null}>
+            <CreatedNotice searchParams={searchParams} />
+          </Suspense>
+        }
+      />
+    </AuthShell>
   );
 }

@@ -1,11 +1,23 @@
-import { SignUpForm } from "@/components/sign-up-form";
+import type { Metadata } from "next";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { ContourSignUpForm } from "@/components/auth/sign-up-form";
+
+export const metadata: Metadata = {
+  title: "Create an account · Contour Education",
+  description: "Create your Contour Education account.",
+};
 
 export default function Page() {
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <SignUpForm />
-      </div>
-    </div>
+    <AuthShell
+      statement="Your place at Contour starts here."
+      proof={
+        <>
+          Join <b>15,000+</b> students already learning with Contour Education.
+        </>
+      }
+    >
+      <ContourSignUpForm />
+    </AuthShell>
   );
 }

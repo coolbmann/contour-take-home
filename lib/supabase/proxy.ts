@@ -2,6 +2,19 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasEnvVars } from "../utils";
 
+/** Paths that must stay reachable while signed out. */
+function isPublicPath(pathname: string) {
+  return (
+    // Sign-in / sign-up screens and the auth callback routes.
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/login") ||
+    // The account-creation API. Without this, an unauthenticated POST to
+    // /api/auth/* is blocked — i.e. sign-up is unreachable for everyone who
+    // needs it.
+    pathname.startsWith("/api/auth")
+  );
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -38,25 +51,30 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
+  // Do not run code between createServerClient and supabase.auth.getUser().
+  // A simple mistake could make it very hard to debug issues with users being
+  // randomly logged out.
+  //
+  // getUser() revalidates the token against the Supabase Auth server on every
+  // request, so a revoked or expired session is caught here rather than being
+  // trusted from the cookie.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  // IMPORTANT: If you remove getClaims() and you use server-side rendering
-  // with the Supabase client, your users may be randomly logged out.
-  const { data } = await supabase.auth.getClaims();
-  const user = data?.claims;
-
-  if (
-    request.nextUrl.pathname !== "/" &&
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    return NextResponse.redirect(url);
+  if (!user && !isPublicPath(request.nextUrl.pathname)) {
+    // Protected pages do not reveal that they exist to signed-out visitors.
+    // Rewriting (not redirecting) keeps the URL intact and renders the app's
+    // not-found UI; the 404 status is set explicitly because a rewrite would
+    // otherwise respond 200.
+    const notFound = NextResponse.rewrite(new URL("/not-found", request.url), {
+      status: 404,
+    });
+    // Carry over any refreshed auth cookies so the session stays consistent.
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      notFound.cookies.set(cookie);
+    });
+    return notFound;
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

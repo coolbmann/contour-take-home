@@ -1,6 +1,11 @@
 import type { Config } from "tailwindcss";
 
 export default {
+  future: {
+    // hover: styles only apply where hover is actually supported, so touch
+    // devices never get stuck hover states. Default in Tailwind v4.
+    hoverOnlyWhenSupported: true,
+  },
   darkMode: ["class"],
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -51,11 +56,58 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+        // Contour design system — studied from contoureducation.com.au.
+        // Every value resolves to a named token in tokens.css, so Tailwind
+        // utilities stay inside the token discipline (no arbitrary colours).
+        contour: {
+          paper: "var(--color-paper)",
+          "paper-2": "var(--color-paper-2)",
+          "paper-3": "var(--color-paper-3)",
+          "paper-hi": "var(--color-paper-hi)",
+          ink: "var(--color-ink)",
+          neutral: "var(--color-neutral)",
+          muted: "var(--color-muted)",
+          rule: "var(--color-rule)",
+          accent: "var(--color-accent)",
+          "accent-hover": "var(--color-accent-hover)",
+          "accent-press": "var(--color-accent-press)",
+          "accent-ink": "var(--color-accent-ink)",
+          "blue-deep": "var(--color-blue-deep)",
+          "blue-mid": "var(--color-blue-mid)",
+          "blue-grey": "var(--color-blue-grey)",
+          "blue-light": "var(--color-blue-light)",
+          focus: "var(--color-focus)",
+          error: "var(--color-error)",
+          success: "var(--color-success)",
+        },
+      },
+      fontFamily: {
+        display: "var(--font-display)",
+        body: "var(--font-body)",
+      },
+      spacing: {
+        control: "var(--control-h)",
+        hit: "var(--hit-min)",
+        "hit-pad": "var(--hit-pad)",
+      },
+      transitionTimingFunction: {
+        "contour-out": "var(--ease-out)",
+      },
+      transitionDuration: {
+        short: "var(--dur-short)",
+      },
+      opacity: {
+        55: "0.55",
+      },
+      screens: {
+        // The form's own content breakpoint — where the name pair fits side by side.
+        xs: "30rem",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        pill: "var(--radius-pill)",
       },
     },
   },

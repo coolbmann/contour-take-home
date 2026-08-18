@@ -19,12 +19,30 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // Contour — the studied DNA's pill button. Colour-only transitions,
+        // outline focus ring (never a border swap, so geometry never shifts).
+        contour:
+          "rounded-pill border border-contour-accent bg-contour-accent font-body text-base font-medium text-contour-accent-ink shadow-none " +
+          "outline outline-2 outline-offset-2 outline-transparent " +
+          "hover:border-contour-accent-hover hover:bg-contour-accent-hover " +
+          "active:border-contour-accent-press active:bg-contour-accent-press " +
+          "focus-visible:outline-contour-focus focus-visible:ring-0 " +
+          "disabled:pointer-events-auto disabled:cursor-not-allowed disabled:opacity-55",
+        contourOutline:
+          "rounded-pill border border-contour-ink bg-transparent font-body text-base font-medium text-contour-ink shadow-none " +
+          "outline outline-2 outline-offset-2 outline-transparent " +
+          "hover:bg-contour-paper-3 " +
+          "active:bg-contour-rule " +
+          "focus-visible:outline-contour-focus focus-visible:ring-0 " +
+          "disabled:pointer-events-auto disabled:cursor-not-allowed disabled:opacity-55",
       },
       size: {
         default: "h-9 px-4 py-2",
         sm: "h-8 rounded-md px-3 text-xs",
         lg: "h-10 rounded-md px-8",
         icon: "h-9 w-9",
+        // Matches --control-h so button height == input height on a form.
+        control: "h-control min-h-control px-6",
       },
     },
     defaultVariants: {

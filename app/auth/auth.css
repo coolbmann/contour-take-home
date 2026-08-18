@@ -1,0 +1,505 @@
+/* Hallmark · macrostructure: Split Studio · genre: playful · nav: N1a · footer: Ft2
+ * theme: studied-DNA (source: url) · studied: yes · enrichment: Tier-B hand-built SVG
+ * source-url: https://www.contoureducation.com.au/
+ * observed-fonts: "Polysans Bulky" + Inter
+ * rhythm: unknown (URL mode)
+ * pre-emit critique: P5 H5 E5 S4 R4 V4
+ * ---------------------------------------------------------------------------
+ * Page-shell layer only. Buttons, inputs and labels live in the shadcn
+ * primitives as `contour` cva variants (components/ui/*), and form-level
+ * layout is Tailwind in the components. What remains here is the diptych
+ * shell, the brand panel, and the few state hooks that are cleaner as CSS
+ * than as conditional rendering.
+ *
+ * Every value references a token from /tokens.css.
+ */
+
+/* Deliberate overflow (the panel's contour motif bleeds past its box) needs a
+   document-level clip. `clip`, never `hidden` — `hidden` makes a scroll
+   container and breaks sticky/fixed descendants. */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* ===========================================================================
+   Shell — Split Studio diptych
+   =========================================================================== */
+
+.auth {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 100dvh;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (min-width: 60rem) {
+  .auth {
+    /* Unbalanced on purpose — the form column carries more weight than the
+       panel. Equal halves read as a template. */
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  }
+}
+
+.auth__main {
+  display: flex;
+  flex-direction: column;
+  /* Generous top, tighter bottom — the rhythm is not evenly padded. */
+  padding: var(--space-lg) clamp(var(--space-md), 6vw, var(--space-3xl))
+    var(--space-md);
+  padding-inline-start: max(
+    clamp(var(--space-md), 6vw, var(--space-3xl)),
+    env(safe-area-inset-left)
+  );
+  padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
+}
+
+@media (min-width: 60rem) {
+  .auth__main {
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-lg);
+  }
+}
+
+.auth__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: var(--space-xl) var(--space-lg);
+}
+
+@media (min-width: 60rem) {
+  .auth__body {
+    padding-block: var(--space-2xl) var(--space-xl);
+  }
+}
+
+.auth__inner {
+  width: 100%;
+  max-width: 27rem;
+}
+
+/* ===========================================================================
+   N1a — wordmark + one destination. The carve-out applies: an auth page
+   genuinely has two destinations, so the minimal nav is the honest pick.
+   =========================================================================== */
+
+.auth__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-block-size: var(--hit-min);
+  color: var(--color-ink);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  letter-spacing: var(--tracking-display);
+  white-space: nowrap;
+  border-radius: var(--radius-xs);
+}
+
+.mark__glyph {
+  display: block;
+  width: 1.375rem;
+  height: 1.375rem;
+  flex: none;
+}
+
+.auth__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-block-size: var(--hit-min);
+  padding-inline: var(--space-xs);
+  margin-inline-end: calc(var(--space-xs) * -1);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: var(--radius-pill);
+  transition: color var(--dur-short) var(--ease-out);
+}
+
+.auth__back svg {
+  flex: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .auth__back:hover {
+    color: var(--color-ink);
+  }
+}
+
+/* ===========================================================================
+   Heading block — stacked single column. No eyebrow, no tag-left/head-right.
+   =========================================================================== */
+
+.auth__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-style: normal; /* headings are roman, always */
+  font-size: var(--text-h1);
+  line-height: var(--leading-head);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+  min-width: 0;
+  text-wrap: balance;
+}
+
+.auth__lede {
+  margin: var(--space-sm) 0 0;
+  max-width: 46ch;
+  color: var(--color-muted);
+  font-size: var(--text-base);
+}
+
+/* ===========================================================================
+   Field trimmings the shadcn Input variant doesn't own
+   =========================================================================== */
+
+.field__aside {
+  position: relative;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--color-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: var(--radius-xs);
+  transition: color var(--dur-short) var(--ease-out);
+}
+
+/* Grows the hit target to 44px without changing the visual size or nudging
+   the baseline-aligned label row. Nothing sits to its right to steal. */
+.field__aside::before {
+  content: "";
+  position: absolute;
+  inset: -0.75rem -0.5rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .field__aside:hover {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+  }
+}
+
+/* The right-edge glyph slot. The box is always reserved (the input pads for
+   it), so surfacing a glyph never reflows the field. Visibility is driven off
+   the input's own state — no conditional rendering, no client state. */
+/* tailwind-merge drops the bare `outline` utility as conflicting with
+   `outline-2`, which leaves the input on the platform's `outline-style: auto`
+   while buttons get `solid`. Pin it so both rings look identical. */
+[data-slot="contour-input"] {
+  outline-style: solid;
+}
+
+.field__glyph {
+  position: absolute;
+  inset-inline-end: var(--space-md);
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  display: none;
+  pointer-events: none;
+  line-height: 0;
+}
+
+[data-slot="contour-input"]:user-invalid ~ [data-glyph="error"],
+[data-slot="contour-input"][aria-invalid="true"] ~ [data-glyph="error"] {
+  display: block;
+}
+
+[data-slot="contour-input"][data-state="success"] ~ [data-glyph="success"] {
+  display: block;
+}
+
+[data-slot="contour-input"][data-state="loading"] ~ [data-glyph="loading"] {
+  display: block;
+}
+
+[data-glyph="button-spinner"] {
+  display: none;
+}
+
+[data-state="loading"] [data-glyph="button-spinner"] {
+  display: block;
+}
+
+/* ===========================================================================
+   Form-level messages
+   =========================================================================== */
+
+.alert,
+.notice {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border: var(--rule-hairline) solid;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+.alert {
+  border-color: var(--color-error);
+  color: var(--color-error);
+  background-color: var(--color-paper-2);
+}
+
+.notice {
+  border-color: var(--color-rule);
+  color: var(--color-ink);
+  background-color: var(--color-paper-3);
+}
+
+/* Helper text holds a line of height even when empty, so surfacing an error
+   never pushes the page down. Error replaces helper; they never stack. */
+.field__helper {
+  min-height: 1lh;
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.field__helper--error {
+  color: var(--color-error);
+}
+
+/* ===========================================================================
+   Swap line + Ft2 inline footer
+   =========================================================================== */
+
+.auth__swap {
+  margin-top: var(--space-lg);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.link {
+  color: var(--color-ink);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+  padding-block: var(--hit-pad); /* inline padding does not alter line height */
+  transition: text-decoration-color var(--dur-short) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link:hover {
+    text-decoration-color: var(--color-ink);
+  }
+}
+
+.link:active,
+.mark:active,
+.auth__back:active,
+.field__aside:active,
+.auth__foot a:active {
+  color: var(--color-muted);
+}
+
+.link:active {
+  color: var(--color-ink);
+  text-decoration-color: var(--color-accent-press);
+}
+
+.link:focus-visible,
+.mark:focus-visible,
+.auth__back:focus-visible,
+.field__aside:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.auth__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs) var(--space-md);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+
+.auth__foot a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--hit-min);
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: var(--radius-xs);
+  transition: color var(--dur-short) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .auth__foot a:hover {
+    color: var(--color-ink);
+  }
+}
+
+.auth__foot a:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* ===========================================================================
+   Brand panel — the diptych's other half. Surface flips dark, so this rule
+   states `color` alongside `background-color`; nothing inherits ink-on-ink.
+   =========================================================================== */
+
+.panel {
+  position: relative;
+  display: none;
+  overflow: hidden;
+  background-color: var(--color-blue-deep);
+  color: var(--color-paper);
+  padding: var(--space-2xl) clamp(var(--space-xl), 4vw, var(--space-3xl));
+  isolation: isolate;
+}
+
+@media (min-width: 60rem) {
+  .panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+}
+
+/* Tier-B hand-built SVG. Topographic contour lines — the brand is named for
+   them, so the motif carries meaning rather than filling space. */
+.panel__motif {
+  position: absolute;
+  inset-block-start: -14%;
+  inset-inline-end: -22%;
+  inline-size: 118%;
+  block-size: auto;
+  z-index: var(--z-base);
+  color: var(--color-accent);
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.panel__content {
+  position: relative;
+  z-index: var(--z-raised);
+  max-width: 30rem;
+}
+
+.panel__statement {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-style: normal;
+  font-size: var(--text-display);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-paper);
+  overflow-wrap: anywhere;
+  min-width: 0;
+  text-wrap: balance;
+}
+
+.panel__rule {
+  inline-size: var(--space-xl);
+  block-size: var(--rule-accent);
+  margin-block: var(--space-lg);
+  border: 0;
+  background-color: var(--color-accent);
+  border-radius: var(--radius-pill);
+}
+
+.panel__proof {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--color-blue-grey);
+  font-size: var(--text-base);
+}
+
+.panel__proof b {
+  color: var(--color-paper);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.panel :focus-visible {
+  outline: 2px solid var(--color-focus-on-deep);
+  outline-offset: 2px;
+}
+
+/* ===========================================================================
+   One orchestrated entrance. Not per-section scroll fades — a single
+   staggered settle on load, then the page is simply there.
+   =========================================================================== */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: reveal var(--dur-long) var(--ease-out) forwards;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 150ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
+  }
+
+  .reveal {
+    animation: reveal-reduced 150ms linear forwards;
+    animation-delay: 0ms;
+  }
+
+  @keyframes reveal-reduced {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Functional loaders keep running, just slower. */
+  [data-glyph="loading"],
+  [data-glyph="button-spinner"] {
+    animation-duration: 1600ms !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+/* Coarse pointers get the full 48px target. */
+@media (pointer: coarse) {
+  [data-slot="contour-input"] {
+    min-block-size: 3rem;
+  }
+
+  .auth__foot a,
+  .auth__back {
+    min-block-size: var(--hit-min);
+  }
+}
