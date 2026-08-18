@@ -1,56 +1,32 @@
-/* Hallmark · macrostructure: Split Studio · genre: playful · nav: N1a · footer: Ft2
- * theme: studied-DNA (source: url) · studied: yes
- * source-url: https://www.contoureducation.com.au/
- * observed-fonts: "Polysans Bulky" (display) + Inter (body)
- * observed-paper:  #fff9f1  → oklch(98.5% 0.012 75.4)
- * observed-accent: #d6fc3c  → oklch(93.2% 0.206 120.7)  "highlighter"
- * observed-radius: buttons 20rem · inputs 10rem  (pill geometry is the signature move)
- * substitution: Polysans Bulky is proprietary → Satoshi (Fontshare) carries the same
- *               warm-geometric-heavy display role.
- * rhythm: unknown (URL mode — HTML/CSS read, no screenshot)
- * ---------------------------------------------------------------------------
- * Portable token export. Every colour and font in the build references a name
- * from this file. No inline hex, no inline oklch, no bare font-family.
- */
-
 :root {
-  /* ---- Paper · warm cream, the brand's base surface --------------------- */
-  --color-paper: oklch(98.5% 0.012 75.4); /* #fff9f1 lightest cream   */
-  --color-paper-2: oklch(96.7% 0.012 75.4); /* #f9f3eb medium cream     */
-  --color-paper-3: oklch(94.6% 0.017 76.1); /* #f4ece1 dark cream       */
-  --color-paper-hi: oklch(99.5% 0.005 78.3); /* #fffdfa lifted cream     */
+  --color-paper: oklch(98.5% 0.012 75.4);
+  --color-paper-2: oklch(96.7% 0.012 75.4);
+  --color-paper-3: oklch(94.6% 0.017 76.1);
+  --color-paper-hi: oklch(99.5% 0.005 78.3);
 
-  /* ---- Ink and neutrals · warm-tinted, never flat grey ------------------ */
-  --color-ink: oklch(24.8% 0.006 76); /* #212121 + trace warmth   */
-  --color-neutral: oklch(45.7% 0.008 68); /* #585756 warm-tinted      */
-  --color-muted: oklch(51.4% 0.02 76); /* #6e665b med grey         */
-  --color-rule: oklch(89.4% 0.016 77.1); /* #e2dbd1 hairline         */
+  --color-ink: oklch(24.8% 0.006 76);
+  --color-neutral: oklch(45.7% 0.008 68);
+  --color-muted: oklch(51.4% 0.02 76);
+  --color-rule: oklch(89.4% 0.016 77.1);
 
-  /* ---- Accent · the highlighter. One accent, small footprint. ----------- */
-  --color-accent: oklch(93.2% 0.206 120.7); /* #d6fc3c highlighter      */
+  --color-accent: oklch(93.2% 0.206 120.7);
   --color-accent-hover: oklch(88% 0.19 120.7);
   --color-accent-press: oklch(83% 0.175 120.7);
-  --color-accent-ink: var(--color-ink); /* 13.69:1 on accent        */
+  --color-accent-ink: var(--color-ink);
 
-  /* ---- Brand blues · the panel and the focus ring ----------------------- */
-  --color-blue-deep: oklch(24.9% 0.063 257.7); /* #0c213f darkest blue     */
-  --color-blue-mid: oklch(32.1% 0.102 258.3); /* #0c3166 medium blue      */
-  --color-blue-brand: oklch(60.3% 0.218 257.4); /* #007aff brand blue       */
-  --color-blue-grey: oklch(68% 0.064 257.8); /* #809ac0 grey blue        */
-  --color-blue-light: oklch(93.8% 0.02 260.2); /* #e3ebf8 light blue       */
+  --color-blue-deep: oklch(24.9% 0.063 257.7);
+  --color-blue-mid: oklch(32.1% 0.102 258.3);
+  --color-blue-brand: oklch(60.3% 0.218 257.4);
+  --color-blue-grey: oklch(68% 0.064 257.8);
+  --color-blue-light: oklch(93.8% 0.02 260.2);
 
-  /* ---- Signals --------------------------------------------------------- */
-  --color-focus: var(--color-blue-mid); /* 12.19:1 paper · 10.84:1 accent */
-  --color-focus-on-deep: var(--color-accent); /* 13.68:1 on blue-deep     */
+  --color-focus: var(--color-blue-mid);
+  --color-focus-on-deep: var(--color-accent);
   --color-error: oklch(52% 0.19 27);
   --color-success: oklch(52% 0.13 155);
 
-  /* ---- Type ------------------------------------------------------------ */
   --font-display: "Satoshi", "Figtree", ui-sans-serif, system-ui, sans-serif;
-  /* --font-inter is supplied by next/font on <html> (app/layout.tsx). It must
-     be in scope HERE at :root — a var() that is undefined where the custom
-     property is declared makes the whole declaration guaranteed-invalid, and
-     that empty value then inherits to every descendant. */
+
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   --text-xs: 0.75rem;
@@ -67,7 +43,6 @@
   --leading-body: 1.6;
   --tracking-display: -0.02em;
 
-  /* ---- Space · 4pt scale ----------------------------------------------- */
   --space-3xs: 0.125rem;
   --space-2xs: 0.25rem;
   --space-xs: 0.5rem;
@@ -79,20 +54,17 @@
   --space-3xl: 6rem;
   --space-4xl: 9rem;
 
-  /* ---- Radius · pill geometry is the DNA's signature -------------------- */
   --radius-xs: 0.25rem;
   --radius-sm: 0.75rem;
   --radius-md: 1rem;
   --radius-pill: 10rem;
 
-  /* ---- Rules and control sizing ---------------------------------------- */
   --rule-hairline: 1px;
   --rule-accent: 3px;
-  --control-h: 2.875rem; /* 46px — input height == button height */
-  --hit-min: 2.75rem; /* 44px — WCAG touch-target floor */
-  --hit-pad: 0.875rem; /* inline padding that lifts a text link to --hit-min */
+  --control-h: 2.875rem;
+  --hit-min: 2.75rem;
+  --hit-pad: 0.875rem;
 
-  /* ---- Motion ---------------------------------------------------------- */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -100,7 +72,6 @@
   --dur-short: 220ms;
   --dur-long: 420ms;
 
-  /* ---- Z scale --------------------------------------------------------- */
   --z-base: 1;
   --z-raised: 10;
   --z-dropdown: 100;

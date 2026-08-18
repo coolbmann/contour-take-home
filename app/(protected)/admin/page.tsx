@@ -12,44 +12,14 @@ export const metadata: Metadata = {
   title: "Home · Contour Education",
 };
 
-/* This route blocks on request-time data by design: it is per-user, behind
- * auth, and nothing on it is cacheable. The alternative Next offers — wrapping
- * the read in <Suspense> — streams the dashboard in as a dynamic hole, and that
- * streamed subtree does not hydrate on a direct load of "/", leaving every
- * button inside it dead. */
 export const instant = false;
-
-/* The proxy (lib/supabase/proxy.ts) already guarantees a signed-in user before
- * this renders. The profile read is still done here rather than trusted from a
- * header, so the page stays correct if the matcher ever changes.
- *
- * `connection()` marks the whole page request-time. The alternative — a
- * Suspense boundary around the profile read — streams the dashboard in as a
- * dynamic hole, and that streamed subtree does NOT hydrate on a direct load of
- * "/", leaving every button inside it dead. Nothing here is cacheable anyway:
- * it is per-user data behind auth. One read, feeding both the greeting and the
- * booking form. */
 
 const headingClass =
   "max-w-[20ch] font-display text-[length:var(--text-h1)] font-bold leading-[1.15] tracking-tight [overflow-wrap:anywhere]";
 
 export default async function Home() {
-  // Request-time: opt out of prerendering rather than streaming a dynamic hole.
   await connection();
 
-  /* Signed out -> /auth/login. Signed in without the role or the grant ->
-   * not-found. Returns the client, so this page cannot query without having
-   * passed here.
-   *
-   * Role AND permission, because satisfies() ANDs the two categories and this
-   * page needs both to be true: only an admin belongs here, and the panel it
-   * renders reads consultations. The login route's "/admin" answer is a
-   * redirect hint, not a gate — this is the gate.
-   *
-   * Note: public.role_permissions currently grants the Admin role nothing, so
-   * until consultation.read is granted to role 2 this denies everyone. That is
-   * the intended failure direction: a locked door beats a page that opens and
-   * then cannot load what it exists to show. */
   const { supabase, access } = await requirePageAccess({
     roles: ["Admin"],
     permissions: ["consultation.readAll"],
@@ -67,8 +37,6 @@ export default async function Home() {
     ? [profile.first_name, profile.last_name].filter(Boolean).join(" ")
     : "";
 
-  // Not wrapped in try/catch: requirePageAccess navigates by throwing, and a
-  // catch here would swallow it. A genuine query failure should surface.
   let consultations: Consultation[] = [];
   try {
     consultations = await getAllConsultations(supabase);
@@ -84,7 +52,7 @@ export default async function Home() {
       </header>
 
       <div className="mx-auto w-full max-w-6xl flex-1 pb-16 pt-12">
-        {/* Narrowing on `profile` (not `fullName`) so the JSX below is type-safe. */}
+
         {!profile || !fullName ? (
           <>
             <h1 className={headingClass}>Welcome</h1>

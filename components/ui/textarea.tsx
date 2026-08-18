@@ -10,8 +10,7 @@ const textareaVariants = cva(
       variant: {
         default:
           "min-h-16 rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50 md:text-sm",
-        // Contour — same state discipline as the pill input: 1px border in every
-        // state, reserved transparent outline, no geometry shift on focus.
+
         contour: cn(
           "min-h-24 resize-y rounded-sm border border-contour-ink bg-contour-paper px-4 py-3",
           "font-body text-base leading-normal text-contour-ink",

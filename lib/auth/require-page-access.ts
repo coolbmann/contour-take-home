@@ -13,26 +13,15 @@ import {
 } from "@/lib/auth/access";
 import { createClient } from "@/lib/supabase/server";
 
-/* Page-side counterpart to withAuthorization.
- *
- * Routes return a status; pages navigate. Same resolver underneath
- * (getAccessContext, request-cached), so guarding a page and then calling a
- * guarded service costs one permission query, not two.
- *
- * Returns the Supabase client so a page cannot get one without coming through
- * here — the point being that "I forgot the guard" and "I have no client" are
- * the same mistake, caught at the type level. */
-
 type DeniedBehaviour =
-  /** Render the not-found UI. Loop-safe, and doesn't disclose the page exists. */
+
   | "not-found"
-  /** Send them somewhere they can actually get to. */
+
   | { redirect: string };
 
 export type PageAccessOptions = {
-  /** Where to send signed-out visitors. */
   signInPath?: string;
-  /** What to do when signed in but lacking the grant. Default "not-found". */
+
   onDenied?: DeniedBehaviour;
 };
 
@@ -42,19 +31,6 @@ export type PageAccess = {
   access: AccessContext;
 };
 
-/**
- * Guard a Server Component.
- *
- * ```ts
- * const { supabase, access } = await requirePageAccess(["consultation.read"]);
- * ```
- *
- * Accepts a bare permission list or the full requirement shape
- * (`{ roles, permissions, match }`).
- *
- * Note: this calls `redirect()` / `notFound()`, which work by throwing. Don't
- * wrap the call in a `try/catch` that swallows — you'd catch the navigation.
- */
 export async function requirePageAccess(
   requirement: AccessRequirement | Permission[] = {},
   options: PageAccessOptions = {},
@@ -69,14 +45,12 @@ export async function requirePageAccess(
   if (!user) redirect(signInPath);
 
   const access = await getAccessContext();
-  // Signed in a moment ago but the context is gone — treat as signed out.
+
   if (!access) redirect(signInPath);
 
   if (!satisfies(access, required)) {
     if (onDenied === "not-found") notFound();
 
-    // Guard against the obvious own-goal: sending someone who lacks the
-    // permission to a page that requires the same permission loops forever.
     if (onDenied.redirect === signInPath) {
       throw new Error(
         "requirePageAccess: onDenied.redirect must not be the sign-in path — " +
@@ -86,7 +60,6 @@ export async function requirePageAccess(
     redirect(onDenied.redirect);
   }
 
-  // Only reached when the guard passed.
   const supabase = await createClient();
   return { supabase, user, access };
 }

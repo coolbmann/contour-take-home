@@ -1,26 +1,4 @@
--- Local development fixtures.
---
--- Run automatically by `supabase db reset`, after every file in
--- supabase/migrations/. Assumes an empty database, but every statement is
--- ON CONFLICT DO NOTHING so re-running it by hand is safe.
---
--- Executes as `postgres`, which bypasses RLS. That is why this file can write
--- rows the application itself could not — and why seeded data is not evidence
--- that the policies allow anything.
---
--- Every account below uses the password: password123
-
 begin;
-
--- Auth users ----------------------------------------------------------------
--- Written directly rather than through the API because `supabase db reset`
--- has no HTTP client. Two rows are needed per account: auth.users holds the
--- credentials, auth.identities is what the password grant actually looks up —
--- without it, sign-in fails with "Invalid login credentials" against a user
--- that plainly exists.
---
--- `email_confirmed_at` is set so no confirmation step is required. This matches
--- config.toml (`enable_confirmations = false`) and the remote project.
 
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
@@ -67,12 +45,6 @@ from auth.users u
 where u.email like '%@contour.test'
 on conflict do nothing;
 
--- Profiles ------------------------------------------------------------------
--- public.handle_new_user() exists in the schema but the trigger that calls it
--- lives on auth.users, in the auth schema, which the dump does not carry. So
--- nothing populates these locally and the seed does it explicitly. The ON
--- CONFLICT keeps this correct if you later attach the trigger.
-
 insert into public.user_profiles (id, first_name, last_name)
 select
   u.id,
@@ -81,13 +53,6 @@ select
 from auth.users u
 where u.email like '%@contour.test'
 on conflict (id) do nothing;
-
--- RBAC ----------------------------------------------------------------------
--- Ids are pinned, not generated. The application hardcodes them —
--- STUDENT_ROLE_ID = 1 in app/api/auth/create-account/route.ts and
--- ADMIN_ROLE_ID = 2 in app/api/auth/login/route.ts — so a locally generated
--- id would break sign-up and the admin redirect in ways that look like
--- application bugs. roles.id is GENERATED ALWAYS, hence OVERRIDING SYSTEM VALUE.
 
 insert into public.roles (id, name, description) overriding system value
 values
@@ -101,19 +66,14 @@ values
   (2, 'consultation', 'read'),
   (3, 'consultation', 'update'),
   (4, 'consultation', 'delete'),
-  -- read *everyone's* bookings; distinct from 'read', which is your own.
   (5, 'consultation', 'readAll')
 on conflict (id) do nothing;
 
--- Sequences must be moved past the pinned ids, or the next natural insert
--- collides with row 1.
 select setval(pg_get_serial_sequence('public.roles', 'id'),
               (select max(id) from public.roles), true);
 select setval(pg_get_serial_sequence('public.permissions', 'id'),
               (select max(id) from public.permissions), true);
 
--- Mirrors the remote grants exactly: Student may act on its own bookings,
--- Admin may only read across all of them.
 insert into public.role_permissions (role_id, permission_id)
 values
   (1, 1), (1, 2), (1, 3), (1, 4),
@@ -131,17 +91,6 @@ join (values
 ) as assignment(email, role_id) on assignment.email = u.email
 on conflict do nothing;
 
--- Consultations -------------------------------------------------------------
--- Dates are relative to the day the seed runs, so the fixtures never go stale.
--- Times are expressed in Australia/Melbourne — the business's wall clock, and
--- the zone lib/consultations/format.ts formats for — so they land on the hour
--- against SLOT_TIMES (08:00–18:00). On a machine in another timezone they will
--- render shifted; that is the app's local-time behaviour, not a seeding bug.
---
--- The spread is deliberate: upcoming, completed, and soft-deleted, so every
--- state the UI can render has something behind it. The soft-deleted row should
--- NOT appear in the app — it is there to prove the deleted_at filters work.
-
 insert into public.consultations (
   id, user_id, booking_date_time, duration_mins, reason, completed_at, deleted_at
 ) overriding system value
@@ -149,7 +98,6 @@ select
   seed.id, u.id, seed.booking_date_time, 60, seed.reason,
   seed.completed_at, seed.deleted_at
 from (values
-  -- Ada: two upcoming, one completed, one cancelled.
   (1, 'ada@contour.test',
    ((current_date + 1)::timestamp + time '16:00') at time zone 'Australia/Melbourne',
    'Stuck on integration by substitution — want to work through the SAC revision set.',
@@ -167,7 +115,6 @@ from (values
    'Cancelled — clashed with a school commitment.',
    null::timestamptz, now() - interval '4 days'),
 
-  -- Marcus: two upcoming, one completed.
   (5, 'marcus@contour.test',
    ((current_date + 1)::timestamp + time '11:00') at time zone 'Australia/Melbourne',
    'Redox half-equations and titration calculations from last week''s prac.',
@@ -181,7 +128,6 @@ from (values
    'Stoichiometry catch-up after missing a week.',
    now() - interval '14 days', null::timestamptz),
 
-  -- Priya: one upcoming.
   (8, 'priya@contour.test',
    ((current_date + 2)::timestamp + time '17:00') at time zone 'Australia/Melbourne',
    'Essay structure feedback on the analytical commentary draft.',

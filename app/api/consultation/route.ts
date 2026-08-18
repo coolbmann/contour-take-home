@@ -8,13 +8,6 @@ import {
   getConsultations,
 } from "@/services/consultation-service";
 
-/* The guard sits on the handler, so the rule is visible at the route it
- * protects. `access` is handed to the handler already resolved — no second
- * lookup for the user id.
- *
- * Read and create are separate grants: a role can be allowed to see its
- * bookings without being allowed to make more. */
-
 export const GET = withAuthorization(
   { permissions: ["consultation.read"] },
   async (_request, { access }) => {
@@ -31,7 +24,6 @@ export const POST = withAuthorization(
     try {
       body = await request.json();
     } catch {
-      // A malformed body is the caller's mistake, not a server fault.
       return NextResponse.json(
         { error: "Expected a JSON body." },
         { status: 400 },
@@ -50,7 +42,7 @@ export const POST = withAuthorization(
     }
 
     const supabase = await createClient();
-    // access.userId, not anything off the body — see the schema's note.
+
     const consultation = await createConsultation(
       supabase,
       access.userId,

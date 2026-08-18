@@ -1,4 +1,3 @@
-/** Field-level errors keyed by input id. */
 export type FieldErrors = Partial<
   Record<"email" | "password" | "first_name" | "last_name", string>
 >;
@@ -7,12 +6,6 @@ export type ParsedAuthError = { message: string; fields: FieldErrors };
 
 const FIELD_KEYS = ["email", "password", "first_name", "last_name"] as const;
 
-/**
- * The create-account route returns either a plain string message from Supabase
- * or a zod `flatten()` object. Normalise both into one shape so the forms can
- * render field-level errors where they belong and fall back to a banner
- * otherwise.
- */
 export function parseAuthError(payload: unknown): ParsedAuthError {
   const err = (payload as { error?: unknown })?.error;
 
@@ -39,7 +32,6 @@ export function parseAuthError(payload: unknown): ParsedAuthError {
   return { message: "That didn’t work. Try again.", fields: {} };
 }
 
-/** Supabase sign-in errors, rewritten as instructions rather than codes. */
 export function signInErrorMessage(code: string | undefined, fallback: string) {
   switch (code) {
     case "email_not_confirmed":

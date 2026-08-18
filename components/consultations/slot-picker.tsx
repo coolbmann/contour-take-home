@@ -10,11 +10,6 @@ import {
 } from "@/lib/consultations/format";
 import { SLOT_TIMES } from "@/lib/consultations/slots";
 
-/* Booking is a two-step choice: pick a day on the calendar, then pick a start
- * time on that day. Times are the same every day (see SLOT_TIMES), so the
- * second step needs nothing from the first beyond "a date exists" — but it
- * stays gated on one anyway, because a time without a date is not a booking. */
-
 export function SlotPicker({
   selectedDate,
   selectedTime,
@@ -30,8 +25,6 @@ export function SlotPicker({
   originalDate: string;
   originalTime: string;
 }) {
-  // Local midnight, so "before today" compares days rather than instants and
-  // this morning does not disqualify the whole of today.
   const today = useMemo(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -49,7 +42,7 @@ export function SlotPicker({
             selected={selected}
             onSelect={(date) => date && onSelectDate(isoFromDate(date))}
             defaultMonth={selected ?? today}
-            // Nobody books a consultation in the past.
+
             disabled={{ before: today }}
             startMonth={today}
           />

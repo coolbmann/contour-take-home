@@ -19,8 +19,7 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        // Contour — the studied DNA's pill button. Colour-only transitions,
-        // outline focus ring (never a border swap, so geometry never shifts).
+
         contour:
           "rounded-pill border border-contour-accent bg-contour-accent font-body text-base font-medium text-contour-accent-ink shadow-none " +
           "outline outline-2 outline-offset-2 outline-transparent " +
@@ -41,7 +40,7 @@ const buttonVariants = cva(
         sm: "h-8 rounded-md px-3 text-xs",
         lg: "h-10 rounded-md px-8",
         icon: "h-9 w-9",
-        // Matches --control-h so button height == input height on a form.
+
         control: "h-control min-h-control px-6",
       },
     },

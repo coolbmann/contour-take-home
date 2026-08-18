@@ -11,8 +11,6 @@ import { signInErrorMessage } from "@/components/auth/auth-errors";
 export function ContourLoginForm({ notice }: { notice?: ReactNode }) {
   const router = useRouter();
 
-  // See components/logout-button.tsx: a manual pending flag survives navigation
-  // because Next hides the old route rather than unmounting it.
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -24,10 +22,6 @@ export function ContourLoginForm({ notice }: { notice?: ReactNode }) {
 
     startTransition(async () => {
       try {
-        // Sign-in goes through our own route, not the Supabase browser client:
-        // the credentials never touch third-party client code, and the response
-        // carries the session cookies that lib/supabase/proxy.ts reads on the
-        // next request.
         const response = await fetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -53,11 +47,8 @@ export function ContourLoginForm({ notice }: { notice?: ReactNode }) {
           return;
         }
 
-        // The route decides where an account belongs — admins to /admin,
-        // everyone else to /. Falling back to "/" keeps a malformed response
-        // from stranding someone who is now signed in.
         router.push(result.redirectTo ?? "/");
-        // Re-run Server Components so the new session is visible immediately.
+
         router.refresh();
       } catch {
         setFormError(

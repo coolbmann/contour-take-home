@@ -20,8 +20,6 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-// Body face for the Contour auth surface — the reference site loads Inter, so
-// this is a deliberate match to the studied DNA, not a reach for the default.
 const inter = Inter({
   variable: "--font-inter",
   display: "swap",
@@ -36,9 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
-        {/* Display face. Polysans Bulky (the reference's own) is proprietary;
-            Satoshi carries the same warm-geometric-heavy role and is free for
-            commercial use. */}
+
         <link rel="preconnect" href="https://api.fontshare.com" />
         <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
         <link

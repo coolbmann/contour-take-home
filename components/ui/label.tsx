@@ -12,7 +12,7 @@ const labelVariants = cva(
     variants: {
       variant: {
         default: "",
-        // Contour — sits above the field, with room for a trailing affordance.
+
         contour:
           "flex items-baseline justify-between gap-3 font-body text-sm font-medium text-contour-ink",
       },

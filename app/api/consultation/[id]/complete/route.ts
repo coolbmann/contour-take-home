@@ -8,17 +8,6 @@ import {
   completeConsultation,
 } from "@/services/consultation-service";
 
-/* Completion is its own route rather than a field on PATCH.
- *
- * PATCH edits a booking — its time, its reason. This closes one out, which is a
- * state transition, not an edit: it takes no body, it is idempotent, and it
- * only ever moves in one direction. Folding it into PATCH would mean a body
- * where `reason` and `completed` mean quite different kinds of thing.
- *
- * POST rather than PUT because there is nothing to put. Guarded by
- * consultation.update: closing out a booking is a change to a booking you can
- * already change. */
-
 type Context = { params: Promise<{ id: string }> };
 
 export const POST = withAuthorization<Context>(
@@ -36,9 +25,6 @@ export const POST = withAuthorization<Context>(
 
     const supabase = await createClient();
     try {
-      // 200 with the row, not 204: the caller needs the new state to repaint
-      // the tag, and making it refetch to learn the outcome of its own write
-      // is a round trip for nothing.
       const consultation = await completeConsultation(
         supabase,
         access.userId,

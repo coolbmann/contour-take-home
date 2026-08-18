@@ -22,14 +22,13 @@ export function ConsultationCard({
 }) {
   const { user_profiles, booking_date_time, duration_mins, reason, completed_at } =
     consultation;
-  // One timestamptz on the row, shown as a date line and a time line.
+
   const date = dateOf(booking_date_time);
   const time = timeOf(booking_date_time);
 
   return (
     <article className="flex w-full min-w-0 flex-col rounded-md border border-contour-rule bg-contour-paper-hi p-5">
-      {/* Name and status on one line, the badge held to its intrinsic width so
-          a long name wraps rather than squeezing the tag. */}
+
       <header className="flex min-w-0 items-start justify-between gap-3">
         <h3 className="min-w-0 font-display text-lg font-bold leading-tight tracking-tight [overflow-wrap:anywhere]">
           {user_profiles.first_name} {user_profiles.last_name}

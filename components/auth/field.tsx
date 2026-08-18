@@ -7,21 +7,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-/* Uncontrolled by design — no client state. Validation comes from native
- * constraint attributes; the `contour` Input variant styles `:user-invalid`,
- * so the error state is real without a single useState.
- *
- * Glyph visibility is driven by data attributes on the input (see auth.css),
- * which keeps this component free of conditional rendering. */
-
 type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
   id: string;
   label: string;
-  /** Optional trailing affordance in the label row (e.g. "Forgot password?"). */
+
   aside?: ReactNode;
-  /** Sits below the field. Its slot reserves a line so errors don't shift the page. */
+
   helper?: string;
-  /** Replaces the helper text and flips the field into its error state. */
+
   error?: string;
 };
 

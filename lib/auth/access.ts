@@ -3,24 +3,13 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { createClient } from "@/lib/supabase/server";
 
-/* Role/permission checks for API routes and services.
- *
- * Model: user_profiles -< user_roles >- roles -< role_permissions >- permissions
- * A permission is addressed as "scope.grant", e.g. "consultation.read".
- *
- * Every table in the chain is soft-deleted, so each hop filters `deleted_at`.
- * Missing one silently re-grants revoked access, which is the failure mode this
- * whole mechanism exists to prevent. */
-
-/** "scope.grant", e.g. "consultation.read". */
 export type Permission = `${string}.${string}`;
 
 export type AccessRequirement = {
-  /** Satisfied when the user holds at least one of these role names. */
   roles?: string[];
-  /** Satisfied per `match` (default "any"). */
+
   permissions?: Permission[];
-  /** How to combine `permissions`. Default "any". */
+
   match?: "any" | "all";
 };
 
@@ -33,7 +22,6 @@ export type AccessContext = {
 };
 
 export class AuthorizationError extends Error {
-  /** 401 when there is no session, 403 when the session lacks the grant. */
   readonly status: 401 | 403;
   readonly requirement?: AccessRequirement;
 
@@ -49,7 +37,6 @@ export class AuthorizationError extends Error {
   }
 }
 
-/** Shape of the single nested read below. */
 type UserRoleRow = {
   deleted_at: string | null;
   roles: {
@@ -69,10 +56,6 @@ type UserRoleRow = {
 const live = <T extends { deleted_at: string | null }>(row: T) =>
   row.deleted_at === null;
 
-/**
- * Roles + permissions for a user, in one round trip.
- * Exported for callers that already hold a client (services, scripts).
- */
 export async function loadAccessFor(
   supabase: SupabaseClient,
   userId: string,
@@ -107,11 +90,6 @@ export async function loadAccessFor(
   return { roles: [...roles], permissions: [...permissions] };
 }
 
-/**
- * The signed-in user for this request, or null.
- * Cached because getUser() is a network round trip to the Auth server, and both
- * the route guard and the page guard need it.
- */
 export const getCurrentUser = cache(async (): Promise<User | null> => {
   const supabase = await createClient();
   const {
@@ -120,11 +98,6 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
   return user;
 });
 
-/**
- * The current request's access context, or null when signed out.
- * `cache()` dedupes it, so guarding a route and then a service it calls costs
- * one query, not two.
- */
 export const getAccessContext = cache(
   async (): Promise<AccessContext | null> => {
     const user = await getCurrentUser();
@@ -143,14 +116,12 @@ export const getAccessContext = cache(
   },
 );
 
-/** Does this context satisfy the requirement? Pure — no I/O. */
 export function satisfies(
   access: AccessContext,
   requirement: AccessRequirement,
 ): boolean {
   const { roles, permissions, match = "any" } = requirement;
 
-  // Categories are ANDed: given both, the user needs the role AND the grants.
   if (roles?.length && !roles.some((r) => access.hasRole(r))) return false;
 
   if (permissions?.length) {
@@ -164,7 +135,6 @@ export function satisfies(
   return true;
 }
 
-/** Non-throwing check, for branching inside a handler. */
 export async function checkAccess(
   requirement: AccessRequirement = {},
 ): Promise<
@@ -179,10 +149,6 @@ export async function checkAccess(
   return { ok: true, access };
 }
 
-/**
- * Throwing guard — the one to call at the top of a service function, so a
- * service is never reachable just because some route forgot to wrap itself.
- */
 export async function requireAccess(
   requirement: AccessRequirement = {},
 ): Promise<AccessContext> {

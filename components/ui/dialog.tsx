@@ -25,20 +25,9 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-/* Centred explicitly (grid + place-items) rather than with a translate, so the
- * panel can never end up pinned to a corner, and so a tall panel scrolls
- * inside itself instead of overflowing the viewport. */
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
-    /**
-     * Classes for this dialog's scrim.
-     *
-     * Overlays are per-dialog and each one paints, so a dialog opened on top of
-     * another stacks two scrims and their opacities compound. Pass
-     * `bg-transparent` on the upper dialog when the one beneath it is already
-     * dimming the page.
-     */
     overlayClassName?: string;
   }
 >(({ className, overlayClassName, children, ...props }, ref) => (

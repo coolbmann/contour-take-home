@@ -32,10 +32,6 @@ import type {
   ConsultationDraft,
 } from "@/lib/consultations/types";
 
-/* One dialog, two modes. `create` starts with the reason and date/time empty
- * and the slot picker already open; `edit` seeds from the record and keeps the
- * existing booking until the user chooses to change it. */
-
 export function ConsultationDialog({
   mode,
   consultation,
@@ -51,7 +47,7 @@ export function ConsultationDialog({
 }: {
   mode: "create" | "edit";
   consultation: Consultation | null;
-  /** uuid written to consultations.user_id on insert. */
+
   currentUserId: string;
   currentUserFirstName: string;
   currentUserLastName: string;
@@ -69,12 +65,9 @@ export function ConsultationDialog({
   const [date, setDate] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
-  // "Touched" tracking: a required field that is simply still empty is not an
-  // error yet — it only becomes one once the user has been in and left it.
+
   const [touched, setTouched] = useState({ reason: false });
 
-  // Re-seed whenever the dialog opens, so a previous edit never leaks into the
-  // next one and a new booking always starts blank.
   useEffect(() => {
     if (!open) return;
     setReason(creating ? "" : (consultation?.reason ?? ""));
@@ -87,24 +80,17 @@ export function ConsultationDialog({
 
   if (!creating && !consultation) return null;
 
-  /* A completed consultation is a record of something that happened, so the
-   * dialog becomes a read-only view of it: nothing to edit, reschedule or
-   * cancel. Note this is presentation only — PATCH and DELETE still accept a
-   * completed booking, so it is a closed door, not a locked one. */
   const completed = !creating && consultation!.completed_at !== null;
 
-  // `booking_date_time` is one timestamptz; the picker works in a date + slot.
   const bookedDate = consultation ? dateOf(consultation.booking_date_time) : "";
   const bookedTime = consultation ? timeOf(consultation.booking_date_time) : "";
 
   const reasonEmpty = reason.trim().length === 0;
-  // Validity gates the submit button; "show" gates the red styling.
+
   const showReasonError = reasonEmpty && touched.reason;
 
-  // --- create-mode validity ------------------------------------------------
   const createReady = !reasonEmpty && Boolean(date) && Boolean(time);
 
-  // --- edit-mode validity --------------------------------------------------
   const pendingDate = date ?? bookedDate;
   const pendingTime = time ?? bookedTime;
   const timeChanged =
@@ -113,7 +99,7 @@ export function ConsultationDialog({
     (pendingDate !== bookedDate || pendingTime !== bookedTime);
   const reasonChanged =
     !creating && reason.trim() !== (consultation!.reason ?? "");
-  // A date without a slot is a half-finished choice — don't let it save.
+
   const awaitingSlot = rescheduling && Boolean(date) && !time;
   const editReady =
     (reasonChanged || timeChanged) && !reasonEmpty && !awaitingSlot;
@@ -138,8 +124,6 @@ export function ConsultationDialog({
   }
 
   function handleComplete() {
-    // One-way, so there is nothing to toggle back — the button is gone below
-    // once the booking is complete.
     onComplete(consultation!.id);
     onOpenChange(false);
   }
@@ -151,12 +135,7 @@ export function ConsultationDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               {creating ? "Book consultation" : "Manage consultation"}
-              {/* Same variant and size as the Sign out button, so the two
-                  secondary actions in the app read as one control; `text-sm`
-                  is the only override, keeping it from crowding the title.
-                  Absent rather than disabled once complete — completion is
-                  one-way, so a disabled button would offer something that will
-                  never re-enable. */}
+
               {!creating && !consultation!.completed_at && (
                 <Button
                   variant="contourOutline"
@@ -192,7 +171,7 @@ export function ConsultationDialog({
                 </div>
                 <div className="min-w-0">
                   <dt className="text-contour-muted">Status</dt>
-                  {/* A booking that does not exist yet cannot be complete. */}
+
                   <dd className="mt-0.5">
                     <ConsultationStatusBadge completedAt={null} />
                   </dd>
@@ -310,7 +289,7 @@ export function ConsultationDialog({
                   selectedTime={time}
                   onSelectDate={(d) => {
                     setDate(d);
-                    // A slot from the previous day is meaningless once the day changes.
+
                     setTime(null);
                   }}
                   onSelectTime={setTime}
@@ -331,9 +310,7 @@ export function ConsultationDialog({
           </div>
 
           <DialogFooter className="mt-6">
-            {/* Completed: hiding both actions would leave a dialog with no
-                visible way out — DialogContent renders no close affordance — so
-                Close takes their place rather than nothing at all. */}
+
             {completed ? (
               <Button
                 variant="contourOutline"

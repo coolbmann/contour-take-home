@@ -4,12 +4,7 @@ import { BackArrowIcon } from "@/components/auth/icons";
 import { ContourGlyph, ContourMotif } from "@/components/auth/contour-marks";
 import "@/app/auth/auth.css";
 
-/* Split Studio diptych. Lives as a component rather than app/auth/layout.tsx
- * so the four sibling /auth/* routes still running the starter UI are
- * untouched — a layout file would wrap them too. */
-
 type AuthShellProps = {
-  /** Panel statement. Kept short — display type at 3rem needs ≤ 7 words. */
   statement: string;
   proof: ReactNode;
   children: ReactNode;

@@ -1,7 +1,3 @@
-/* Hallmark · Tier-B hand-built SVG. No library, no generated image.
- * The brand is named for contour lines, so the motif carries meaning
- * rather than filling space. */
-
 export function ContourGlyph({ className }: { className?: string }) {
   return (
     <svg

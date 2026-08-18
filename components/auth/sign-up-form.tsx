@@ -13,16 +13,14 @@ import {
 
 export function ContourSignUpForm() {
   const router = useRouter();
-  // See components/logout-button.tsx: a manual pending flag survives navigation
-  // because Next hides the old route rather than unmounting it.
+
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // Inputs stay uncontrolled — FormData reads them on submit, so typing
-    // doesn't re-render the form.
+
     const data = new FormData(event.currentTarget);
 
     setFormError(null);
@@ -50,8 +48,6 @@ export function ContourSignUpForm() {
           return;
         }
 
-        // Supabase only returns a confirmed user when "Confirm email" is off.
-        // Tell the sign-in screen which of the two messages to show.
         const confirmed = Boolean(payload?.user?.email_confirmed_at);
         router.push(`/auth/login?created=${confirmed ? "1" : "confirm"}`);
       } catch {

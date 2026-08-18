@@ -12,13 +12,8 @@ import {
   updateConsultation,
 } from "@/services/consultation-service";
 
-/* Both handlers here mutate someone's booking, so both run the ownership check
- * in the service before writing — and the write itself re-filters on the owner,
- * so the check cannot be raced. See requireOwned() in the service. */
-
 type Context = { params: Promise<{ id: string }> };
 
-/** Shared by PATCH and DELETE: the `:id` segment, or a 400 to return. */
 function readId(id: string):
   | { ok: true; id: number }
   | { ok: false; response: NextResponse } {
@@ -35,11 +30,6 @@ function readId(id: string):
   return { ok: true, id: parsed.data };
 }
 
-/**
- * withAuthorization maps AuthorizationError for us; this covers the other
- * error a mutation route is expected to produce. Anything else is a genuine
- * fault and is left to become a 500.
- */
 function toResponse(error: unknown): NextResponse {
   if (error instanceof ConsultationNotFoundError) {
     return NextResponse.json({ error: error.message }, { status: 404 });
@@ -89,11 +79,6 @@ export const PATCH = withAuthorization<Context>(
   },
 );
 
-/**
- * Soft delete: stamps `deleted_at` rather than removing the row, so the
- * cancellation stays on the record. 204, because there is nothing left to
- * describe.
- */
 export const DELETE = withAuthorization<Context>(
   { permissions: ["consultation.delete"] },
   async (_request, { params, access }) => {

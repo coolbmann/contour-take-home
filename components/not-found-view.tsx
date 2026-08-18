@@ -2,10 +2,6 @@ import Link from "next/link";
 
 import { ContourGlyph } from "@/components/auth/contour-marks";
 
-/* Shared by app/not-found.tsx (unknown URLs) and app/not-found/page.tsx (the
- * proxy's rewrite target for signed-out visitors). Same surface either way, so
- * a protected page is indistinguishable from one that never existed. */
-
 export function NotFoundView() {
   return (
     <main className="flex min-h-dvh flex-col bg-contour-paper px-6 py-6 font-body text-contour-ink">

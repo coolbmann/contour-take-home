@@ -10,15 +10,11 @@ const inputVariants = cva(
       variant: {
         default:
           "h-9 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50 md:text-sm",
-        // Contour — pill field from the studied DNA.
-        //   · border-width is 1px in EVERY state; state goes to background,
-        //     outline and border-COLOUR only, so focus never shifts layout
-        //   · the outline slot is reserved transparent at 2px for the same reason
-        //   · right padding reserves a slot for the error/success/loading glyph
+
         contour: cn(
           "h-control rounded-pill border border-contour-ink bg-contour-paper py-0 pl-4 pr-10",
           "font-body text-base leading-normal text-contour-ink",
-          "outline-2 outline-offset-1 outline-transparent", // style pinned in auth.css
+          "outline-2 outline-offset-1 outline-transparent",
           "placeholder:text-contour-muted placeholder:opacity-100",
           "enabled:hover:bg-contour-paper-2",
           "focus-visible:bg-contour-paper-hi focus-visible:outline-contour-focus",
