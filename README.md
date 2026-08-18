@@ -57,6 +57,9 @@ it a test of the `deleted_at` filtering rather than decoration.
 
 The data model follows the following schema:
 
+<img width="1514" height="1524" alt="Screenshot 2026-08-18 at 11 39 45 PM" src="https://github.com/user-attachments/assets/282bb442-e65f-4cab-8cfd-32b7e2022e80" />
+
+
 RBAC is implemented through a series of permission and role tables, which are attached to users defining the scope they have to certain APIs exposed by the system. The key tables are as follows:
 
 `permissions`:
